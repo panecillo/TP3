@@ -7,6 +7,7 @@ new Vue({
         turnos: [], //es para registrar los eventos de la partida
         esJugador: false,
         puedeCurar: 0,
+        puedeAtaqueEspecial: 0,
         rangoAtaque: [3, 10],
         rangoAtaqueEspecial: [10, 20],
         rangoAtaqueDelMonstruo: [5, 12],
@@ -22,6 +23,8 @@ new Vue({
         empezarPartida: function () {
             this.saludJugador = 100;
             this.saludMonstruo = 100;
+            this.puedeCurar = 0;
+            this.puedeAtaqueEspecial = 0;
             this.turnos = new Array();
             this.hayUnaPartidaEnJuego = true
         },
@@ -32,10 +35,12 @@ new Vue({
                 this.saludMonstruo -= ataqueJugador
                 this.registrarEvento(this.leyendaAtaque + ataqueJugador)
                 if (this.verificarGanador()){
+                    this.saludMonstruo = 0;
                     this.finalizar()
                     return;
                 }
                 this.recargarCuracion();
+                this.recargarAtaqueEspecial();
                 this.esJugador = false;
                 this.ataqueDelMonstruo()
             }
@@ -47,41 +52,47 @@ new Vue({
                 this.registrarEvento(this.leyendaAtaque + ataqueJugador)
                 if (this.verificarGanador()){
                     this.finalizar()
+                    this.saludMonstruo = 0;
                     return;
                 }
                 this.recargarCuracion();
+                this.recargarAtaqueEspecial();
                 this.esJugador = false;  
             }
         },
 
         ataqueEspecial: function () {
-            if(this.saludJugador <= this.saludMonstruo){
-                this.esJugador = true;
-                var ataqueJugador = this.calcularHeridas(this.rangoAtaqueEspecial[0], this.rangoAtaqueEspecial[1])
-                this.saludMonstruo -= ataqueJugador
-                this.registrarEvento(this.leyendaAtaqueEspecial + ataqueJugador)
-                if (this.verificarGanador()){
-                    this.saludMonstruo = 0;
-                    this.finalizar()
-                    return;
+            if(this.puedeAtaqueEspecial >= 4) {
+                if(this.saludJugador <= this.saludMonstruo){
+                    this.esJugador = true;
+                    var ataqueJugador = this.calcularHeridas(this.rangoAtaqueEspecial[0], this.rangoAtaqueEspecial[1])
+                    this.saludMonstruo -= ataqueJugador
+                    this.registrarEvento(this.leyendaAtaqueEspecial + ataqueJugador)
+                    if (this.verificarGanador()){
+                        this.saludMonstruo = 0;
+                        this.finalizar()
+                        return;
+                    }
+                    this.recargarCuracion();
+                    this.puedeAtaqueEspecial = 0;
+                    this.esJugador = false;
+                    this.ataqueDelMonstruo()
                 }
-                this.recargarCuracion();
-                this.esJugador = false;
-                this.ataqueDelMonstruo()
-            }
-            else{
-                this.ataqueDelMonstruo()
-                this.esJugador = true;
-                var ataqueJugador = this.calcularHeridas(this.rangoAtaqueEspecial[0], this.rangoAtaqueEspecial[1])
-                this.saludMonstruo -= ataqueJugador
-                this.registrarEvento(this.leyendaAtaqueEspecial + ataqueJugador)
-                if (this.verificarGanador()){
-                    this.saludMonstruo = 0;
-                    this.finalizar()
-                    return;
+                else{
+                    this.ataqueDelMonstruo()
+                    this.esJugador = true;
+                    var ataqueJugador = this.calcularHeridas(this.rangoAtaqueEspecial[0], this.rangoAtaqueEspecial[1])
+                    this.saludMonstruo -= ataqueJugador
+                    this.registrarEvento(this.leyendaAtaqueEspecial + ataqueJugador)
+                    if (this.verificarGanador()){
+                        this.saludMonstruo = 0;
+                        this.finalizar()
+                        return;
+                    }
+                    this.recargarCuracion();
+                    this.puedeAtaqueEspecial = 0;
+                    this.esJugador = false;  
                 }
-                this.recargarCuracion();
-                this.esJugador = false;  
             }
         },
 
@@ -98,7 +109,6 @@ new Vue({
         },
         terminarPartida: function () {
             if (confirm("Te has rendido! Quieres jugar otra vez?")) {
-                location.reload()
                 this.empezarPartida();
             } 
         },
@@ -125,10 +135,12 @@ new Vue({
         recargarCuracion: function () {
             this.puedeCurar++;
         },
+        recargarAtaqueEspecial: function () {
+            this.puedeAtaqueEspecial++;
+        },
         finalizar: function () {
             if(this.esJugador){
                 if (confirm("Derrotaste al Monstruo! Quieres jugar otra vez?")) {
-//                    location.reload()
                     this.empezarPartida();
                 }
                 else {
@@ -138,7 +150,6 @@ new Vue({
             }
             else{
                 if (confirm("Has perdido! Quieres jugar otra vez?")) {
-//                    location.reload()
                     this.empezarPartida();
                 } 
                 else {
